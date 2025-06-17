@@ -5,7 +5,7 @@ const authRoutes = require("./routes/authRoutes");
 const bookRoutes = require("./routes/bookRoutes");
 const loanRoutes = require("./routes/loanRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const path = require("path"); // ✅ Add this
+const path = require("path");
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));

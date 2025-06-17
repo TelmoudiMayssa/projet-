@@ -1,45 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body>
-    <h1>Welcome, Admin</h1>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <h1>Welcome, Admin</h1>
 
-    <section>
-      <h2>All Users</h2>
-      <button onclick="fetchUsers()">Refresh List</button>
-      <ul id="userList"></ul>
-    </section>
+  <section>
+    <h2>All Users</h2>
+    <button onclick="fetchUsers()">Refresh List</button>
+    <ul id="userList"></ul>
+  </section>
 
-    <section>
-      <h2>Create New Librarian</h2>
-      <form id="createForm">
-        <input type="text" placeholder="Name" id="name" required />
-        <input type="text" placeholder="Surname" id="surname" required />
-        <input type="email" placeholder="Email" id="email" required />
-        <input type="password" placeholder="Password" id="password" required />
-        <select id="role" required>
-          <option value="" disabled selected>Choisir un rôle</option>
-          <option value="student">Etudiant</option>
-          <option value="librarian">Librarian</option>
-          <option value="admin">admin</option>
-        </select>
+ <section>
+  <h2>Create New User</h2>
+  <form id="createForm">
+    <input type="text" placeholder="Name" id="name" required />
+    <input type="text" placeholder="Surname" id="surname" required />
+    <input type="email" placeholder="Email" id="email" required />
+    <input type="password" placeholder="Password" id="password" required />
 
-        <input
-          type="text"
-          placeholder="Numéro carte étudiante"
-          id="student_card_number"
-          style="display: none"
-        />
-        <button type="submit">Create User</button>
-      </form>
-      <button id="logoutBtn">Logout</button>
-    </section>
+    <select id="role" required>
+      <option value="">Select Role</option>
+      <option value="librarian">Librarian</option>
+      <option value="student">Student</option>
+    </select>
 
-    <script src="js/admin.js"></script>
-  </body>
+    <!-- Optional: Student Card Number (only needed if 'student' is selected) -->
+    <input type="text" placeholder="Student Card Number (if student)" id="student_card_number" />
+
+    <button type="submit">Create User</button>
+  </form>
+  <p id="statusMessage" style="margin-top: 10px;"></p>
+
+  <button id="logoutBtn">Logout</button>
+
+
+  <script src="js/admin.js"></script>
+</body>
 </html>

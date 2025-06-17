@@ -1,140 +1,103 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Student Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h2>Welcome, Student</h2>
-      <button onclick="logout()">Logout</button>
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, Student</h2>
+    <button onclick="logout()">Logout</button>
+    <h3>Search Books</h3>
+<input type="text" id="searchQuery" placeholder="Enter theme or reference code" />
+<button onclick="searchBooks()">Search</button>
+<p id="searchMessage" style="color: red; margin-top: 5px;"></p>
 
-      <h3>Available Books</h3>
-      <div id="bookList"></div>
+<h4>Search Results</h4>
+<div id="searchResults"></div>
 
-      <p id="message" style="color: rgb(76, 180, 76); margin-top: 10px"></p>
-    </div>
+    <h3>Available Books</h3>
+    <div id="bookList"></div>
 
-    <h2>My Borrowed Books</h2>
-    <table border="1">
-      <thead>
-        <tr>
-          <th>Book Title</th>
-          <th>Borrow Date</th>
-          <th>Return Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="borrowedTable"></tbody>
-    </table>
+    <p id="message" style="color: green; margin-top: 10px;"></p>
+  </div>
+  <h2>My Borrowed Books</h2>
+  <table  border="1">
+    <thead>
+      <tr>
+        <th>Book Title</th>
+        <th>Borrow Date</th>
+        <th>Return Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="borrowedTable"></tbody>
+  </table>
+  
+  <script src="js/student.js">
+    
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
 
-    <script src="js/student.js">
-      const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
-
-      if (!token || !user || user.role !== "student") {
-        window.location.href = "login.html";
-      }
-
-      function logout() {
-        localStorage.clear();
-        window.location.href = "login.html";
-      }
-
-      async function fetchAvailableBooks() {
-        try {
-          const res = await fetch("/api/books", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          const books = await res.json();
-          const container = document.getElementById("bookList");
-          container.innerHTML = "";
-
-          books.forEach((book) => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-              <p><strong>${book.title}</strong> by ${book.author} (${
-              book.theme
-            }) -
-              Status: ${book.status}</p>
-              ${
-                book.status === "available"
-                  ? `<button onclick="borrowBook(${book.id})">Borrow</button>`
-                  : ""
-              }
-              <hr/>
-            `;
-            container.appendChild(div);
-          });
-        } catch (err) {
-          console.error("Error fetching books:", err);
+  async function fetchAvailableBooks() {
+    try {
+      const res = await fetch('/api/books', {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      }
+      });
+      const books = await res.json();
+      const tbody = document.querySelector('#booksTable tbody');
+      tbody.innerHTML = '';
 
-      async function borrowBook(bookId) {
-        try {
-          const res = await fetch("/api/loans/borrow", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ book_id: bookId }),
-          });
+      books.forEach(book => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${book.title}</td>
+          <td>${book.author}</td>
+          <td>${book.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('Error fetching books:', err);
+    }
+  }
 
-          const data = await res.json();
-          const msg = document.getElementById("message");
-
-          if (res.ok) {
-            msg.style.color = "green";
-            msg.textContent = data.message;
-            fetchAvailableBooks();
-            fetchBorrowedBooks();
-          } else {
-            msg.style.color = "red";
-            msg.textContent = data.message;
-          }
-        } catch (err) {
-          console.error("Error borrowing book:", err);
+  async function fetchBorrowedBooks() {
+    try {
+      const res = await fetch(`/api/loans/user/${user.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      }
+      });
 
-      async function fetchBorrowedBooks() {
-        try {
-          const res = await fetch(`/api/loans/user/${user.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+      const loans = await res.json();
+      const tbody = document.querySelector("#borrowedTable tbody");
+      tbody.innerHTML = '';
 
-          const loans = await res.json();
-          const tbody = document.getElementById("borrowedTable");
-          tbody.innerHTML = "";
+      loans.forEach(loan => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${loan.Book.title}</td>
+          <td>${new Date(loan.borrow_date).toLocaleDateString()}</td>
+          <td>${new Date(loan.return_date).toLocaleDateString()}</td>
+          <td>${loan.returned ? 'Returned' : 'Borrowed'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error('Failed to load borrowed books:', err);
+    }
+  }
 
-          loans.forEach((loan) => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${loan.Book?.title || "N/A"}</td>
-              <td>${new Date(loan.borrow_date).toLocaleDateString()}</td>
-              <td>${new Date(loan.return_date).toLocaleDateString()}</td>
-              <td>${loan.returned ? "Returned" : "Borrowed"}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-        } catch (err) {
-          console.error("Failed to load borrowed books:", err);
-        }
-      }
+  window.onload = function () {
+    fetchAvailableBooks();
+    fetchBorrowedBooks();
+  };
+</script>
 
-      // Charger les données quand la page est prête
-      window.onload = function () {
-        fetchAvailableBooks();
-        fetchBorrowedBooks();
-      };
-    </script>
-  </body>
-</html>
+</body>
+</htm>

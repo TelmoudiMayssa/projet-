@@ -4,13 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const token = localStorage.getItem("token");
-let user;
-try {
-  user = JSON.parse(localStorage.getItem("user"));
-} catch (e) {
-  user = null;
-}
-
+const user = JSON.parse(localStorage.getItem("user"));
 if (!token || !user || user.role !== "student") {
   window.location.href = "login.html";
 }
@@ -59,8 +53,8 @@ async function borrowBook(bookId) {
   if (res.ok) {
     msg.style.color = "green";
     msg.textContent = data.message;
-    loadBooks();
-    fetchBorrowedBooks();
+    loadBooks(); // Refresh book list
+    fetchBorrowedBooks(); // ✅ Refresh borrowed section
   } else {
     msg.style.color = "red";
     msg.textContent = data.message;
@@ -93,6 +87,68 @@ async function fetchBorrowedBooks() {
   } catch (err) {
     console.error("Error fetching borrowed books:", err);
   }
+}
+
+async function searchBooks() {
+  const token = localStorage.getItem("token");
+  const query = document.getElementById("searchQuery").value.trim();
+  const msg = document.getElementById("searchMessage");
+  const resultsContainer = document.getElementById("searchResults");
+  resultsContainer.innerHTML = "";
+  msg.textContent = "";
+
+  if (!query) {
+    msg.textContent = "Please enter a search query.";
+    return;
+  }
+
+  try {
+    // First try reference_code search
+    let res = await fetch(`/api/books/${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      const book = await res.json();
+      resultsContainer.innerHTML = `
+        <p><strong>${book.title}</strong> by ${book.author} - ${book.theme} [${book.reference_code}]
+        <br>Status: ${book.status}</p>
+        <hr/>
+      `;
+      return;
+    }
+
+    // If not found by reference, try theme
+    res = await fetch(`/api/books/search?theme=${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      const books = await res.json();
+      if (books.length === 0) {
+        msg.textContent = "No books found with this theme or reference.";
+        return;
+      }
+
+      books.forEach((book) => {
+        resultsContainer.innerHTML += `
+          <p><strong>${book.title}</strong> by ${book.author} - ${book.theme} [${book.reference_code}]
+          <br>Status: ${book.status}</p>
+          <hr/>
+        `;
+      });
+    } else {
+      msg.textContent = "No books found.";
+    }
+  } catch (err) {
+    console.error("Search error:", err);
+    msg.textContent = "Server error";
+  }
+
+  // Auto-hide message
+  setTimeout(() => {
+    msg.textContent = "";
+  }, 4000);
 }
 
 // 🚪 Logout
