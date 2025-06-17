@@ -1,11 +1,23 @@
-// Get token from storage
+// Récupération du token dans le localStorage
 const token = localStorage.getItem("token");
 if (!token) {
-  alert("No token found. Please log in.");
+  alert("Aucun token trouvé. Veuillez vous connecter.");
   window.location.href = "login.html";
 }
 
-// 🔁 Fetch all users
+// Afficher/cacher le champ numéro carte étudiante selon le rôle sélectionné
+document.getElementById("role").addEventListener("change", (e) => {
+  const studentCardInput = document.getElementById("student_card_number");
+  if (e.target.value === "student") {
+    studentCardInput.style.display = "block";
+    studentCardInput.required = true;
+  } else {
+    studentCardInput.style.display = "none";
+    studentCardInput.required = false;
+  }
+});
+
+// Fonction pour récupérer tous les utilisateurs (admin uniquement)
 async function fetchUsers() {
   try {
     const res = await fetch("/api/admin/users", {
@@ -22,19 +34,19 @@ async function fetchUsers() {
       const li = document.createElement("li");
       li.innerHTML = `
         <strong>${user.name} ${user.surname}</strong> - ${user.email} (${user.role})
-        <button onclick="deleteUser(${user.id})">Delete</button>
+        <button onclick="deleteUser(${user.id})">Supprimer</button>
       `;
       userList.appendChild(li);
     });
   } catch (err) {
-    console.error("Error fetching users:", err);
-    alert("Failed to load users");
+    console.error("Erreur lors de la récupération des utilisateurs :", err);
+    alert("Échec du chargement des utilisateurs");
   }
 }
 
-// 🗑️ Delete a user
+// Supprimer un utilisateur
 async function deleteUser(id) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
+  if (!confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) return;
 
   try {
     const res = await fetch(`/api/admin/users/${id}`, {
@@ -46,47 +58,60 @@ async function deleteUser(id) {
 
     const data = await res.json();
     alert(data.message);
-    fetchUsers(); // refresh list
+    fetchUsers(); // rafraîchir la liste
   } catch (err) {
-    console.error("Delete error:", err);
-    alert("Failed to delete user");
+    console.error("Erreur de suppression :", err);
+    alert("Échec de la suppression de l'utilisateur");
   }
 }
 
-// ➕ Create new librarian
+// Créer un nouvel utilisateur (étudiant, bibliothécaire, admin)
 document.getElementById("createForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const name = document.getElementById("name").value;
-  const surname = document.getElementById("surname").value;
-  const email = document.getElementById("email").value;
+  const name = document.getElementById("name").value.trim();
+  const surname = document.getElementById("surname").value.trim();
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
+  const student_card_number = document
+    .getElementById("student_card_number")
+    .value.trim();
+
+  // Préparer le corps de la requête
+  const bodyData = { name, surname, email, password, role };
+  if (role === "student") {
+    bodyData.student_card_number = student_card_number;
+  }
 
   try {
-    const res = await fetch("/api/admin/librarians", {
+    // Le controller attend POST sur /api/admin/users pour créer user
+    const res = await fetch("/api/admin/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ name, surname, email, password }),
+      body: JSON.stringify(bodyData),
     });
 
     const data = await res.json();
+
     if (res.ok) {
-      alert("Librarian created successfully");
+      alert(`${role.charAt(0).toUpperCase() + role.slice(1)} créé avec succès`);
       document.getElementById("createForm").reset();
+      document.getElementById("student_card_number").style.display = "none";
       fetchUsers();
     } else {
-      alert(data.message || "Error creating librarian");
+      alert(data.message || "Erreur lors de la création de l'utilisateur");
     }
   } catch (err) {
-    console.error("Create error:", err);
-    alert("Server error");
+    console.error("Erreur serveur :", err);
+    alert("Erreur serveur");
   }
 });
 
-// 🚪 Logout button
+// Bouton déconnexion
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
@@ -95,5 +120,5 @@ if (logoutBtn) {
   });
 }
 
-// 🟢 Load users on page load
+// Charger la liste des utilisateurs au chargement de la page
 window.onload = fetchUsers;
