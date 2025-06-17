@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <h1>Welcome, Admin</h1>
+
+    <section>
+      <h2>All Users</h2>
+      <button onclick="fetchUsers()">Refresh List</button>
+      <ul id="userList"></ul>
+    </section>
+
+    <section>
+      <h2>Create New Librarian</h2>
+      <form id="createForm">
+        <input type="text" placeholder="Name" id="name" required />
+        <input type="text" placeholder="Surname" id="surname" required />
+        <input type="email" placeholder="Email" id="email" required />
+        <input type="password" placeholder="Password" id="password" required />
+        <button type="submit">Create Librarian</button>
+      </form>
+      <button id="logoutBtn">Logout</button>
+    </section>
+
+    <script src="js/admin.js"></script>
+  </body>
+</html>

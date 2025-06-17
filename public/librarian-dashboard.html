@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Librarian Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, Librarian</h2>
+    <button onclick="logout()">Logout</button>
+
+    <hr />
+
+    <section>
+      <h3>Return a Book</h3>
+      <form id="returnForm">
+        <input type="text" id="referenceCode" placeholder="Book Reference Code" required />
+        <button type="submit">Mark as Returned</button>
+      </form>
+      <p id="returnMessage" style="margin-top: 10px; color: green;"></p>
+    </section>
+
+    <hr />
+
+    <section>
+      <h3>Overdue Loans</h3>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Book</th>
+            <th>Borrowed By</th>
+            <th>Return Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="overdueTable"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="js/librarian.js"></script>
+</body>
+</html>
